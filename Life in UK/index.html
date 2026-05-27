@@ -282,31 +282,50 @@
 
   <script>
     // Tests Dataset preserved exactly from uploaded sources
-const rawTests = fetch('questiondata.json')
-  .then(response => response.json())
-  .catch(err => {
-    console.error("Failed to load tests dataset: ", err);
-    return [];
-  });
+    let tests = [];
 
-// Dynamically expand the compressed datasets into active UI state at runtime
-const tests = rawTests.map(t => ({
-  name: t.name,
-  questions: t.questions.map(q => ({
-    questionNumber: q[0],
-    questionText: q[1],
-    isMultiSelect: q[2],
-    answers: q[3].map((ans, idx) => ({
-      index: idx,
-      text: ans[0],
-      isCorrectAnswer: ans[1],
-      wasSelected: false
-    })),
-    correctAnswer: q[4],
-    explanation: q[5],
-    isCorrect: false
-  }))
-}));
+    function transformTests(rawTests) {
+      if (!Array.isArray(rawTests)) {
+        console.error("Tests dataset must be an array, received:", typeof rawTests);
+        return [];
+      }
+
+      // Dynamically expand the compressed datasets into active UI state at runtime
+      return rawTests.map(t => ({
+        name: t.name,
+        questions: t.questions.map(q => ({
+          questionNumber: q[0],
+          questionText: q[1],
+          isMultiSelect: q[2],
+          answers: q[3].map((ans, idx) => ({
+            index: idx,
+            text: ans[0],
+            isCorrectAnswer: ans[1],
+            wasSelected: false
+          })),
+          correctAnswer: q[4],
+          explanation: q[5],
+          isCorrect: false
+        }))
+      }));
+    }
+
+    async function loadTestsData() {
+      try {
+        const datasetUrl = new URL("./questiondata.json", window.location.href);
+        const response = await fetch(datasetUrl.href, { cache: "no-store" });
+
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status} while loading ${datasetUrl.href}`);
+        }
+
+        const rawTests = await response.json();
+        tests = transformTests(rawTests);
+      } catch (err) {
+        console.error("Failed to load tests dataset:", err);
+        tests = [];
+      }
+    }
     // App State Management
     let currentTestIndex = 0;
     let currentQuestionIndex = 0;
@@ -319,7 +338,7 @@ const tests = rawTests.map(t => ({
     let activeReviewFilter = 'all';
 
     // Track test history locally in this session to update dashboard analytics
-    let testResultsHistory = Array(tests.length).fill(null);
+    let testResultsHistory = [];
 
     // DOM Elements Selection
     const homeScreen = document.getElementById("homeScreen");
@@ -356,7 +375,9 @@ const tests = rawTests.map(t => ({
     const statReadiness = document.getElementById("statReadiness");
 
     // Initialize application
-    window.onload = function () {
+    window.onload = async function () {
+      await loadTestsData();
+      testResultsHistory = Array(tests.length).fill(null);
       loadSessionData();
       renderDashboard();
       lucide.createIcons();
