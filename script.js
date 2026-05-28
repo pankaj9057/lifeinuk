@@ -2,6 +2,8 @@
 let tests = [];
 const THEME_OVERRIDE_KEY = "life_uk_theme_override";
 let themeOverrideMode = null;
+const SHUFFLE_QUESTIONS_KEY = "life_uk_shuffle_questions";
+let shuffleQuestionsEnabled = true;
 
 function getAutoThemeByTime(now = new Date()) {
   const hour = now.getHours();
@@ -53,6 +55,35 @@ function saveThemeOverride() {
     }
   } catch (e) {
     console.warn("Could not save theme override:", e);
+  }
+}
+
+function loadShuffleQuestionsPreference() {
+  try {
+    const savedPreference = localStorage.getItem(SHUFFLE_QUESTIONS_KEY);
+    if (savedPreference !== null) {
+      shuffleQuestionsEnabled = savedPreference === "true";
+    }
+  } catch (e) {
+    console.warn("Could not load shuffle preference:", e);
+  }
+}
+
+function saveShuffleQuestionsPreference() {
+  try {
+    localStorage.setItem(SHUFFLE_QUESTIONS_KEY, String(shuffleQuestionsEnabled));
+  } catch (e) {
+    console.warn("Could not save shuffle preference:", e);
+  }
+}
+
+function setShuffleQuestionsPreference(enabled) {
+  shuffleQuestionsEnabled = enabled;
+  saveShuffleQuestionsPreference();
+
+  const shuffleQuestionsToggle = document.getElementById("shuffleQuestionsToggle");
+  if (shuffleQuestionsToggle) {
+    shuffleQuestionsToggle.checked = enabled;
   }
 }
 
@@ -183,9 +214,11 @@ const statReadiness = document.getElementById("statReadiness");
 // Initialize application
 window.onload = async function () {
   startThemeScheduler();
+  loadShuffleQuestionsPreference();
   await loadTestsData();
   testResultsHistory = Array(tests.length).fill(null);
   loadSessionData();
+  setShuffleQuestionsPreference(shuffleQuestionsEnabled);
   renderDashboard();
   lucide.createIcons();
 };
@@ -321,6 +354,11 @@ function startTest(index) {
 
   // Clone active test questions to avoid editing the core database source directly
   testQuestions = JSON.parse(JSON.stringify(tests[index].questions));
+
+  // Let the user choose whether question order should be randomized for this attempt.
+  if (shuffleQuestionsEnabled) {
+    testQuestions = shuffleArray(testQuestions);
+  }
 
   // Shuffle answer options each time the paper starts so the order is not fixed.
   testQuestions = testQuestions.map((question) => ({
@@ -733,6 +771,13 @@ function completeTest(isTimeout = false) {
 
 function retryActiveTest() {
   startTest(currentTestIndex);
+}
+
+function toggleShuffleQuestionsPreference() {
+  const shuffleQuestionsToggle = document.getElementById("shuffleQuestionsToggle");
+  if (!shuffleQuestionsToggle) return;
+
+  setShuffleQuestionsPreference(shuffleQuestionsToggle.checked);
 }
 
 function setReviewFilter(filterType) {
