@@ -374,6 +374,13 @@ function updateTimerDisplay() {
   }
 }
 
+function getRequiredSelectionCount(currentQuestion) {
+  if (!currentQuestion.isMultiSelect) return 1;
+
+  const correctAnswersCount = currentQuestion.answers.filter((answer) => answer.isCorrectAnswer).length;
+  return Math.max(1, correctAnswersCount);
+}
+
 // Display/Draw the active question
 function renderQuestion() {
   const currentQuestion = testQuestions[currentQuestionIndex];
@@ -398,7 +405,7 @@ function renderQuestion() {
 
   // Question Text Block
   let helperBadge = currentQuestion.isMultiSelect
-    ? `<span class="bg-blue-100 text-blue-800 text-xs font-bold px-2 py-0.5 rounded-full uppercase tracking-wide">Select Two Answers</span>`
+    ? `<span class="bg-blue-100 text-blue-800 text-xs font-bold px-2 py-0.5 rounded-full uppercase tracking-wide">Multiple Choice</span>`
     : `<span class="bg-slate-100 text-slate-700 text-xs font-bold px-2 py-0.5 rounded-full uppercase tracking-wide">Single Choice</span>`;
 
   questionBox.innerHTML = `
@@ -440,7 +447,7 @@ function renderQuestion() {
   if (currentQuestion.wasChecked) {
     renderCheckedQuestionState(currentQuestion);
   } else {
-    const requiredCount = currentQuestion.isMultiSelect ? 2 : 1;
+    const requiredCount = getRequiredSelectionCount(currentQuestion);
     if (activeUserSelections.length === requiredCount) {
       btnCheck.disabled = false;
       btnCheck.className = "bg-slate-900 hover:bg-slate-800 text-white font-bold py-2.5 px-6 rounded-xl transition-all flex items-center gap-1.5 custom-shadow text-sm cursor-pointer";
@@ -511,6 +518,7 @@ function renderCheckedQuestionState(currentQuestion) {
 // Register Selection Updates on option click
 function toggleSelection(index) {
   const currentQuestion = testQuestions[currentQuestionIndex];
+  const requiredCount = getRequiredSelectionCount(currentQuestion);
 
   // If we already validated answer, disable selecting updates
   if (btnNext.style.display === "flex") return;
@@ -522,7 +530,7 @@ function toggleSelection(index) {
       activeUserSelections.splice(exists, 1);
       dehighlightCard(index);
     } else {
-      if (activeUserSelections.length < 2) {
+      if (activeUserSelections.length < requiredCount) {
         activeUserSelections.push(index);
         highlightCard(index);
       } else {
@@ -541,7 +549,6 @@ function toggleSelection(index) {
   }
 
   // Manage Validation triggers
-  const requiredCount = currentQuestion.isMultiSelect ? 2 : 1;
   if (activeUserSelections.length === requiredCount) {
     btnCheck.disabled = false;
     btnCheck.className = "bg-slate-900 hover:bg-slate-800 text-white font-bold py-2.5 px-6 rounded-xl transition-all flex items-center gap-1.5 custom-shadow text-sm cursor-pointer";
