@@ -82,8 +82,16 @@ function setShuffleQuestionsPreference(enabled) {
   saveShuffleQuestionsPreference();
 
   const shuffleQuestionsToggle = document.getElementById("shuffleQuestionsToggle");
+  const shuffleStateLabel = document.getElementById("shuffleStateLabel");
   if (shuffleQuestionsToggle) {
     shuffleQuestionsToggle.checked = enabled;
+  }
+
+  if (shuffleStateLabel) {
+    shuffleStateLabel.innerText = enabled ? "ON" : "OFF";
+    shuffleStateLabel.className = enabled
+      ? "text-[11px] font-extrabold text-blue-400 tracking-wide min-w-[28px] text-right"
+      : "text-[11px] font-extrabold text-slate-300 tracking-wide min-w-[28px] text-right";
   }
 }
 

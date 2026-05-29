@@ -199,12 +199,19 @@
           <p class="text-sm text-slate-500">Each simulator accurately covers the full range of historical, cultural, and
             political concepts.</p>
         </div>
-        <label class="flex items-center gap-3 bg-white border border-slate-200 rounded-xl px-4 py-3 custom-shadow cursor-pointer select-none">
+        <label class="flex items-center gap-3 bg-gradient-to-r from-slate-900 to-indigo-950 border border-slate-700/80 rounded-xl px-4 py-3 custom-shadow cursor-pointer select-none text-white">
           <div>
-            <p class="text-sm font-bold text-slate-800">Shuffle questions</p>
-            <p class="text-[11px] text-slate-500">Turn off to keep the original order</p>
+            <p class="text-sm font-bold text-white">Shuffle questions</p>
+            <p class="hidden sm:block text-[11px] text-slate-300">Turn off to keep the original order</p>
           </div>
-          <input id="shuffleQuestionsToggle" type="checkbox" class="w-4 h-4 accent-blue-600" onchange="toggleShuffleQuestionsPreference()">
+          <div class="ml-auto flex items-center gap-2">
+            <span id="shuffleStateLabel" class="text-[11px] font-extrabold text-blue-400 tracking-wide min-w-[28px] text-right">ON</span>
+            <span class="relative inline-flex h-6 w-11 items-center">
+              <input id="shuffleQuestionsToggle" type="checkbox" class="peer sr-only" onchange="toggleShuffleQuestionsPreference()">
+              <span class="absolute inset-0 rounded-full bg-slate-500/70 transition-colors duration-200 peer-checked:bg-blue-600"></span>
+              <span class="absolute left-0.5 h-5 w-5 rounded-full bg-white shadow-sm transition-transform duration-200 peer-checked:translate-x-5"></span>
+            </span>
+          </div>
         </label>
       </div>
 
